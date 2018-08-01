@@ -45,30 +45,25 @@ myplot <- function(x, col = "black", lwd = NULL, lty = NULL, ...){
 }
 
 
-
-
-# funstion seasonal.SSM uses local level model with monthly seasonal component and performs Kalman smoothing
-seasonal.SSM <- function(df) {
+# funstion sa.SSM uses local level model with monthly seasonal component and performs Kalman smoothing
+sa.SSM <- function(df) {
 
     # input: df is expected to be a tibble with list column named data,
-    #        each element in data column is itself a tibble with a column named period (double of form YYYYMM) and a column named y (double)
+    #        each element in data column is itself a tibble with data stored in a column named y (double)
 
     # output: df.SSM contains the same elements as df but data tibble have an extra column named y.KS (double) which is Kalman smoothed y
 
     df.SSM <-
         df %>% mutate(data = map(data, ~(.x %>%
                                              mutate(y.KS = .x %>%
-                                                        # convert date
-                                                        mutate(monyear = as.yearmon(as.character(period), format="%Y %m")) %>%
-                                                        # convert data to ts format
-                                                        xts(x = .[, !(names(.) %in% c("monyear","period"))], order.by=.$monyear) %>% as.zoo() %>% as.ts() %>%
                                                         # define state space model - local level with seasonality
-                                                        SSModel(y ~ SSMtrend(degree=1, Q=NA) + SSMseasonal(period=12, sea.type="dummy", Q=NA), H=NA, data=.) %>%
+                                                        SSModel(y ~ SSMtrend(degree = 1, Q = NA) +
+                                                                    SSMseasonal(period = 12, sea.type = "dummy", Q = NA), H = NA, data = .) %>%
                                                         # maximum likelihood estimation
-                                                        fitSSM(inits=log(c(0.01,0.01,0.01)), method="Nelder-Mead") %$%
+                                                        fitSSM(inits=log(c(0.01, 0.01, 0.01)), method = "Nelder-Mead") %$%
                                                         # Kalman smoothing
-                                                        KFS(model, smoothing=c("state","mean")) %>%
-                                                        # extract smooted level
-                                                        signal(states = "level") %$% signal))))
+                                                        KFS(model, smoothing = c("state", "disturbance")) %$%
+                                                        # extract smoothed level + disturbance
+                                                        {alphahat[,"level"] + epshat}))))
+}
 
-    }

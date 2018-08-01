@@ -73,23 +73,23 @@ df.blsdata <-
     filter(series_id %in% c(# NSA stocks: POP, LF, E, U, I
                             "LNU00000000", "LNU01000000", "LNU02000000", "LNU03000000", "LNU05000000",
                             # NSA rates: LFPR, EPR, UR
-                            "LNU01300000","LNU02300000","LNU04000000",
+                            "LNU01300000", "LNU02300000", "LNU04000000",
                             # NSA flows: EE, UE, IE
-                            "LNU07000000","LNU07100000","LNU07200000",
+                            "LNU07000000", "LNU07100000", "LNU07200000",
                             # NSA flows: EU, UU, IU
-                            "LNU07400000","LNU07500000","LNU07600000",
+                            "LNU07400000", "LNU07500000", "LNU07600000",
                             # NSA flows: EI, UI, II
-                            "LNU07800000","LNU07900000","LNU08000000",
+                            "LNU07800000", "LNU07900000", "LNU08000000",
                             # SA stocks: POP, LF, E, U, I
                             "LNS10000000", "LNS11000000", "LNS12000000", "LNS13000000", "LNS15000000",
-                            # SSA rates: LFPR, EPR, UR
-                            "LNS11300000","LNS12300000","LNS14000000",
+                            # SA rates: LFPR, EPR, UR
+                            "LNS11300000", "LNS12300000", "LNS14000000",
                             # SA flows: EE, UE, IE
-                            "LNS17000000","LNS17100000","LNS17200000",
+                            "LNS17000000", "LNS17100000", "LNS17200000",
                             # SA flows: EU, UU, IU
-                            "LNS17400000","LNS17500000","LNS17600000",
+                            "LNS17400000", "LNS17500000", "LNS17600000",
                             # SA flows: EI, UI, II
-                            "LNS17800000","LNS17900000","LNS18000000"
+                            "LNS17800000", "LNS17900000", "LNS18000000"
                             )) %>%
     # keep only monthly data, drop quarterly and annual data
     filter(!(str_detect(period, pattern = "Q") | str_detect(period, "M13"))) %>%
@@ -185,28 +185,27 @@ df.blsdata %>%
     filter(str_sub(source, 1, 3) == "err") %>%
     filter(!is.na(value)) %>%
     separate(measure, into = c("lfs", "seas")) %>%
-    {ggplot(., aes(x = monyear, y = value, col = source)) +
-            geom_line() +
-            geom_hline(yintercept = 0, linetype = "dotted") +
-            scale_x_yearmon() +
-            scale_y_continuous(labels = scales::percent) +
-            scale_color_discrete(labels = c("sum in month 1", "sum in month 2")) +
-            labs(x = "", y = "", title  = "Difference between stocks constructed by summing BLS flows and actual BLS stocks",
-                 col = "") +
-            facet_grid(lfs ~ seas, scales = "free_y")}
+    ggplot(aes(x = monyear, y = value, col = source)) +
+        geom_line() +
+        geom_hline(yintercept = 0, linetype = "dotted") +
+        scale_x_yearmon() +
+        scale_y_continuous(labels = scales::percent) +
+        scale_color_discrete(labels = c("sum in month 1", "sum in month 2")) +
+        labs(x = "", y = "", title  = "Difference between stocks constructed by summing BLS flows and actual BLS stocks",
+             color = "") +
+        facet_grid(lfs ~ seas, scales = "free_y")
 
 # construct population shares by LFS
 df.stocksandshares.bls <-
     df.stocks.bls %>%
     group_by(period, seas) %>%
-    mutate(pop = sum(s),
-           popshr = s/pop) %>%
+    mutate(shr.lfs2pop = s / sum(s)) %>%
     ungroup()
 
 # plot population shares by LFS
 df.stocksandshares.bls %>%
     mutate(monyear = period %>% as.character() %>% as.yearmon(format = "%Y%m")) %>%
-    ggplot(aes(x = monyear, y = popshr)) +
+    ggplot(aes(x = monyear, y = shr.lfs2pop)) +
         geom_line() +
         scale_x_yearmon() +
         facet_grid(lfs ~ seas, scales = "free")
@@ -224,4 +223,4 @@ df.flowsandrates.bls <-
 save(df.blsdata, df.stocksandshares.bls, df.flowsandrates.bls, file = paste0(odir.bls, "BLS_lf.Rdata"))
 
 rm(df.flows.bls.sum.1, df.flows.bls.sum.2,
-   df.blsdata, df.flows.bls, df.flowsandrates.bls, df.stocksandshares.bls)
+   df.blsdata, df.stocks.bls, df.flows.bls, df.flowsandrates.bls, df.stocksandshares.bls)

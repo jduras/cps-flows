@@ -20,10 +20,7 @@ while (t <= tlast) {
 
     rm(df.cpsdata)
 
-    # go to next month
-    t <- t + 1
-    # go to next year if last two digits of t are 13
-    if ((t %% 100) == 13) t <- t + 88
+    t <- if_else(t %% 100 == 12, t + 89, t + 1)
 }
 
 print("Transforming dataset from list to tibble")

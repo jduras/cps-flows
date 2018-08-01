@@ -27,10 +27,7 @@ while (t1 <= tlast-100) {
 
     rm(df.merged.2m.yoy)
 
-    # go to next month
-    t1 <- t1 + 1
-    # go to next year if last two digits of t2=13
-    if (t1 %% 100 == 13) t1 <- t1 + 88
+    t1 <- if_else(t1 %% 100 == 12, t1 + 89, t1 + 1)
 }
 
 print("Transforming dataset from list to tibble")

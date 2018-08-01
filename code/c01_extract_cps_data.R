@@ -523,8 +523,6 @@ while (t <= tlast) {
     rm(df.cpsdata, df.cpsdata.origin, df.cpsdata.revised)
 
     # go to next month
-    t <- t + 1
-    # go to next year if last two digits of x=13
-    if (t %% 100 == 13) t <- t + 88
+    t <- if_else(t %% 100 == 12, t + 89, t + 1)
 
 }

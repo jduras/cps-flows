@@ -9,9 +9,7 @@ breaks <- c(197601, 197801, 198507, 198510, 199401, 199506, 199507, 199508, 1995
 
 while (t1 < tlast) {
 
-    t2 <- t1 + 1
-    # go to next year if last two digits of t2=13
-    if (t2 %% 100 == 13) t2 <- t2 + 88
+    t2 <- if_else(t1 %% 100 == 12, t1 + 89, t1 + 1)
 
     print(paste0(" now adding: ", t1, "-", t2))
 
