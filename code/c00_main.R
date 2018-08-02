@@ -25,7 +25,7 @@ library(questionr)
 mdir.cps <- "C:/Drive/Dropbox/User/Academic/00Projects/03CPS/"
 # directory with R code
 sdir.cps <- paste0(mdir.cps, "code/")
-# directory where CPS data AND flows_67.dta is located; monthly files must be extracted and named 'bYYYYMM'
+# directory where CPS data is located; monthly files must be extracted and named 'bYYYYMM'
 ddir.cps <- "D:/Data/CPS/data/basic/unpacked/"
 # directory for CPS extracts
 edir.cps <- "D:/Data/CPS/extracts/flows/"
@@ -64,23 +64,3 @@ source(paste0(sdir.cps, "c06_merge_1m.R"))
 # merge matched individuals data from all months into one dataset
 source(paste0(sdir.cps, "c07_merge_2m.R"))
 source(paste0(sdir.cps, "c08_merge_2m_yoy.R"))
-
-# construct flows and transition rates: overall
-source(paste0(sdir.cps, "c_flows_occ.R"))
-
-# construct flows and transition rates by occupation
-source(paste0(sdir.cps, "c_flows_occ.R"))
-
-
-# create the stocks data
-source(paste0(sdir.cps, "c_stocks_occ.R"))
-# create the flow data
-source(paste0(sdir.cps, "c_flows_occ.R"))
-# seasonally adjust using ratio-to-moving-average
-# source(paste0(sdir.cps,"c_sa.R"))
-# plot graphs
-# source(paste0(sdir.cps,"c_graphs.R"))
-# labor force
-# source(paste0(sdir.cps,"c_lf.R"))
-
-
