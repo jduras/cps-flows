@@ -43,10 +43,10 @@ while (t1 < tlast-2) {
             df.merged.2m.1 %>%
             inner_join(df.merged.2m.2,
                        by = c("gestcen", "hid", "pid", "white", "black", "female", "age.2", "mis.2",
-                              "period.2", "educ.2", "married.2", "lfs.2", "unempdur.2", "occ1grp.2", "weight.2"), suffix = c(".1", ".2")) %>%
+                              "period.2", "educ.2", "married.2", "lfs.2", "udur.2", "occ1cat.2", "weight.2"), suffix = c(".1", ".2")) %>%
             inner_join(df.merged.2m.3,
                        by = c("gestcen", "hid", "pid", "white", "black", "female", "age.3", "mis.3",
-                              "period.3", "educ.3", "married.3", "lfs.3", "unempdur.3", "occ1grp.3", "weight.3"), suffix = c(".2", ".3"))
+                              "period.3", "educ.3", "married.3", "lfs.3", "udur.3", "occ1cat.3", "weight.3"), suffix = c(".2", ".3"))
 
         save(df.merged.4m, file = paste0(edir.cps, "merged_4m_", t1, ".Rdata"))
         rm(df.merged.2m, df.merged.2m.1, df.merged.2m.2, df.merged.2m.3, df.merged.4m)

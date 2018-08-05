@@ -448,9 +448,9 @@ while (t <= tlast) {
                                 PEMLR %in% c(5:7)              ~ "I",
                                 TRUE                           ~ "M"),
                # duration of unemployment
-               unempdur = PRUNEDUR,
+               udur = PRUNEDUR,
                # occupation: non-routine cognitive, non-routine manual, routine cognitive, routine manual, farm, military
-               occ1grp.all = case_when(is.na(PEIO1OCD) ~ "X",
+               occ1cat.all = case_when(is.na(PEIO1OCD) ~ "X",
 
                                         (period <= 198212) & (PEIO1OCD %in% occ.grp$Y1970$NRC) ~ "NRC",
                                         (period <= 198212) & (PEIO1OCD %in% occ.grp$Y1970$NRM) ~ "NRM",
@@ -482,20 +482,20 @@ while (t <= tlast) {
 
                                         TRUE                          ~ "X"),
 
-               occ1grp = if_else(lfs == "I", "X", occ1grp.all)
+               occ1cat = if_else(lfs == "I", "X", occ1cat.all)
         )
 
     # industry: manufacturing, non-manufacturing
     if (t <= 199912)
-        df.cpsdata %<>% mutate(ind1grp = case_when(PRMJIND1 %in% c(4,5)      ~ "MAN",
+        df.cpsdata %<>% mutate(ind1cat = case_when(PRMJIND1 %in% c(4,5)      ~ "MAN",
                                                    PRMJIND1 %in% c(1:3,6:23) ~ "NONMAN",
                                                    TRUE                      ~ "X"))
     if (t >= 200001 & t <= 200212)
-        df.cpsdata %<>% mutate(ind1grp = case_when(NRDTIND1 %in% c(4,5)       ~ "MAN",
+        df.cpsdata %<>% mutate(ind1cat = case_when(NRDTIND1 %in% c(4,5)       ~ "MAN",
                                                    NRDTIND1 %in% c(1:3,6:22)  ~ "NONMAN",
                                                    TRUE                       ~ "X"))
     if (t >= 200301)
-        df.cpsdata %<>% mutate(ind1grp = case_when(PRIMIND1 %in% c(4,5)       ~ "MAN",
+        df.cpsdata %<>% mutate(ind1cat = case_when(PRIMIND1 %in% c(4,5)       ~ "MAN",
                                                    PRIMIND1 %in% c(1:3,6:22)  ~ "NONMAN",
                                                    TRUE                       ~ "X"))
 
@@ -516,7 +516,7 @@ while (t <= tlast) {
                pid = PULINENO,
                mis = HRMIS,) %>%
         # select(-GESTCEN,-PRTAGE,-PESEX,-PEEDUCA,-PEMLR,-PRUNEDUR,-PEIO1OCD)
-        select(period, gestcen, hid, pid, mis, age, educ, female, white, black, married, lfs, unempdur, occ1grp, occ1grp.all, ind1grp, weight)
+        select(period, gestcen, hid, pid, mis, age, educ, female, white, black, married, lfs, udur, occ1cat, occ1cat.all, ind1cat, weight)
 
     save(df.cpsdata, file = paste0(edir.cps, "cpsb_", t, ".Rdata"))
 

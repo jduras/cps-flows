@@ -13,12 +13,12 @@ df.table.1 <-
     mutate(hsd = (educ==1) %>% as.numeric(),
            hsg = (educ %in% c(2:3)) %>% as.numeric(),
            clp = (educ %in% c(4:5)) %>% as.numeric(),
-           lfs.occ1grp = paste0(lfs,"_",occ1grp),
+           lfs.occ1cat = paste0(lfs,"_",occ1cat),
            nwhite = if_else(white == 0, 1, 0)) %>%
-    select(lfs.occ1grp, age, hsd, hsg, clp, female, nwhite, married, weight) %>%
-    { bind_rows(nest(mutate(., lfs.occ1grp = "all"), -lfs.occ1grp),
-                nest(., -lfs.occ1grp)) } %>%
-    arrange(lfs.occ1grp) %>%
+    select(lfs.occ1cat, age, hsd, hsg, clp, female, nwhite, married, weight) %>%
+    { bind_rows(nest(mutate(., lfs.occ1cat = "all"), -lfs.occ1cat),
+                nest(., -lfs.occ1cat)) } %>%
+    arrange(lfs.occ1cat) %>%
     mutate(mean.age = map_dbl(data, ~wtd.mean(.x$age, weights = .x$weight, na.rm = TRUE)),
            mean.edu.1.hsd = map_dbl(data, ~wtd.mean(.x$hsd, weights = .x$weight, na.rm = TRUE)),
            mean.edu.2.hsg = map_dbl(data, ~wtd.mean(.x$hsg, weights = .x$weight, na.rm = TRUE)),
@@ -30,24 +30,24 @@ df.table.1 <-
     select(-data)
 
 df.table.1 %>%
-    gather(measure, value, -lfs.occ1grp) %>%
-    spread(lfs.occ1grp, value) %>%
+    gather(measure, value, -lfs.occ1cat) %>%
+    spread(lfs.occ1cat, value) %>%
     select(measure, all, E_NRC, E_RC, E_RM, E_NRM, I_X)
 
 
 # plot share of those not in labor force, by occupation group
-# (in Cortes, Jaimovich, Nekarda, Siu all workers with lfs = I are considered as occ1grp = X)
+# (in Cortes, Jaimovich, Nekarda, Siu all workers with lfs = I are considered as occ1cat = X)
 df.merged.1m.all %>%
-    select(period, lfs, occ1grp.all, weight) %>%
+    select(period, lfs, occ1cat.all, weight) %>%
     filter(lfs == "I") %>%
-    filter(!(occ1grp.all %in% c("FRM", "MIL"))) %>%
-    group_by(period, occ1grp.all) %>%
+    filter(!(occ1cat.all %in% c("FRM", "MIL"))) %>%
+    group_by(period, occ1cat.all) %>%
     summarise(s = sum(weight)) %>%
     group_by(period) %>%
     mutate(shr = s / sum(s)) %>%
     ungroup() %>%
     mutate(monyear = period %>% as.character() %>% as.yearmon(format = "%Y%m")) %>%
-    ggplot(aes(x = monyear, y = shr, col = occ1grp.all)) +
+    ggplot(aes(x = monyear, y = shr, col = occ1cat.all)) +
         geom_line() +
         scale_x_yearmon() +
         scale_y_continuous(labels = percent) +
@@ -55,14 +55,14 @@ df.merged.1m.all %>%
         labs(title="Share of Not in Labor Force, by Occupation Group",
              x="", y="Share of Not in Labor Force",
              col="Occupation Group") +
-        facet_grid(occ1grp.all~ ., scales = "free_y", switch = "y") +
+        facet_grid(occ1cat.all~ ., scales = "free_y", switch = "y") +
         theme(strip.placement = "outside")
 
 
 # construct shares of population in different labor force and occupation groups
 df.stocksandshares.cps.occ.whole.sample <-
     df.merged.1m.all %>%
-    group_by(period, lfs, occ1grp) %>%
+    group_by(period, lfs, occ1cat) %>%
     summarise(seas = "NSA",
               s.occ = sum(weight)) %>%
     group_by(period, lfs) %>%
@@ -73,7 +73,7 @@ df.stocksandshares.cps.occ.whole.sample <-
 
 df.stocksandshares.cps.occ <-
     df.merged.1m.all.sample %>%
-    group_by(period, lfs, occ1grp) %>%
+    group_by(period, lfs, occ1cat) %>%
     summarise(seas = "NSA",
               s.occ = sum(weight)) %>%
     group_by(period, lfs) %>%
@@ -105,27 +105,27 @@ df.stocksandshares.cps.occ %>%
         scale_x_yearmon() +
         scale_y_continuous(labels = percent) +
         labs(x = "", y = "Share of population") +
-        facet_grid(lfs ~ occ1grp, scales = "free_y")
+        facet_grid(lfs ~ occ1cat, scales = "free_y")
 
 
 # unemployment rate and population shares by occupation group
 df.pop.shares.cps.occ.combined <-
     df.stocksandshares.cps.occ.combined %>%
     filter(lfs != "M") %>%
-    select(sample, period, lfs, occ1grp, s.occ, shr.occ2pop) %>%
+    select(sample, period, lfs, occ1cat, s.occ, shr.occ2pop) %>%
     gather(measure, value, c(s.occ, shr.occ2pop)) %>%
     unite(measure, measure, lfs, sep = ".") %>%
     spread(measure, value) %>%
-    group_by(sample, period, occ1grp) %>%
+    group_by(sample, period, occ1cat) %>%
     mutate(ur3 = s.occ.U / (s.occ.U + s.occ.E),
            shr.occ2pop.E.plus.U = shr.occ2pop.E + shr.occ2pop.U) %>%
-    group_by(sample, occ1grp) %>%
+    group_by(sample, occ1cat) %>%
     mutate(ur3.index.200712 = case_when(period >= 200712 ~ ur3 / ur3[period == 200712],
                                        TRUE              ~ NA_real_),
            ur3.change.200712 = ur3 - ur3[period == 200712]) %>%
     ungroup() %>%
-    select(sample, period, occ1grp, shr.occ2pop.E, shr.occ2pop.U, shr.occ2pop.E.plus.U, ur3, ur3.index.200712, ur3.change.200712) %>%
-    gather(measure, y, -c(sample, period, occ1grp)) %>%
+    select(sample, period, occ1cat, shr.occ2pop.E, shr.occ2pop.U, shr.occ2pop.E.plus.U, ur3, ur3.index.200712, ur3.change.200712) %>%
+    gather(measure, y, -c(sample, period, occ1cat)) %>%
     nest(c(period, y)) %>%
     sa.SSM() %>%
     unnest() %>%
@@ -136,7 +136,7 @@ df.pop.shares.cps.occ.combined <-
 
 chosen.seas <- "SA"
 df.pop.shares.cps.occ.combined %>%
-    filter(occ1grp %in% c("NRC", "NRM", "RC", "RM")) %>%
+    filter(occ1cat %in% c("NRC", "NRM", "RC", "RM")) %>%
     filter(seas == chosen.seas) %>%
     mutate(monyear = period %>% as.character() %>% as.yearmon(format = "%Y%m"),
            measure.label = case_when(measure == "shr.occ2pop.E.plus.U" ~ "Population Share: Employed plus Unemployed",
@@ -146,7 +146,7 @@ df.pop.shares.cps.occ.combined %>%
                                      measure == "ur3.index.200712"     ~ "Unemployment Rate, index Dec 2007=100",
                                      measure == "ur3.change.200712"    ~ "Unemployment Rate, change from Dec 2007")) %>%
     ggplot() +
-        geom_line(aes(x = monyear, y = value, color = occ1grp, linetype = sample)) +
+        geom_line(aes(x = monyear, y = value, color = occ1cat, linetype = sample)) +
         geom_rect(data = rec.dates %>% filter(Start > "Jan 1976"), aes(xmin = Start, xmax = End, ymin = -Inf, ymax = Inf), alpha = 0.1) +
         scale_x_yearmon() +
         scale_color_discrete(labels = c("non-routine cognitive", "non-routine manual", "routine cognitive", "routine manual"))+
@@ -157,7 +157,7 @@ df.pop.shares.cps.occ.combined %>%
 df.uande.shares.cps.occ.combined <-
     df.stocksandshares.cps.occ.combined %>%
     filter(lfs %in% c("E", "U")) %>%
-    select(sample, period, lfs, occ1grp, shr.occ2lfs) %>%
+    select(sample, period, lfs, occ1cat, shr.occ2lfs) %>%
     rename(y = shr.occ2lfs) %>%
     nest(c(period, y)) %>%
     sa.SSM() %>%
@@ -168,11 +168,11 @@ df.uande.shares.cps.occ.combined <-
 
 chosen.seas <- "SA"
 df.uande.shares.cps.occ.combined %>%
-    filter(occ1grp %in% c("NRC", "NRM", "RC", "RM")) %>%
+    filter(occ1cat %in% c("NRC", "NRM", "RC", "RM")) %>%
     filter(seas == chosen.seas) %>%
     mutate(monyear = period %>% as.character() %>% as.yearmon(format = "%Y%m")) %>%
     ggplot() +
-        geom_line(aes(x = monyear, y = value, color = occ1grp, linetype = sample)) +
+        geom_line(aes(x = monyear, y = value, color = occ1cat, linetype = sample)) +
         geom_rect(data = rec.dates %>% filter(Start > "Jan 1976"), aes(xmin = Start, xmax = End, ymin = -Inf, ymax = Inf), alpha = 0.1) +
         scale_x_yearmon() +
         scale_y_continuous(labels = percent) +

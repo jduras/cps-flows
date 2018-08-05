@@ -15,7 +15,7 @@ while (t <= tlast) {
         c(df.merged.1m.all,
           df.cpsdata %>%
               filter(age >= 16) %>%
-              filter(!(occ1grp %in% c("MIL"))) %>%
+              filter(!(occ1cat %in% c("MIL"))) %>%
               list())
 
     rm(df.cpsdata)
@@ -34,8 +34,8 @@ df.merged.1m.all.sample <-
     df.merged.1m.all %>%
     filter(age >= 16 & age <= 75) %>%
     filter(lfs != "M") %>%
-    filter(!(occ1grp %in% c("FRM", "MIL"))) %>%
-    filter(!(lfs == "E" & occ1grp == "X"))
+    filter(!(occ1cat %in% c("FRM", "MIL"))) %>%
+    filter(!(lfs == "E" & occ1cat == "X"))
 
 print("Saving dataset")
 

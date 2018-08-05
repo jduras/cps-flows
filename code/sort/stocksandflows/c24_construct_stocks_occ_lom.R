@@ -32,7 +32,7 @@ df.shares.occ <-
     filter(measure == chosen.measure) %>%
     filter(seas == chosen.seas) %>%
     filter(period >= tinitial) %>%
-    unite(status, c(lfs, occ1grp), sep = ".") %>%
+    unite(status, c(lfs, occ1cat), sep = ".") %>%
     select(period, seas, measure, status, value)
 
 dates <-
@@ -122,10 +122,10 @@ save(df.shares.lom.occ.counter, file = paste0(edir.cps, "shares_occ_lom_", chose
 
 # plot simulated and actual shares
 df.shares.lom.occ.counter %>%
-    separate(status, into = c("lfs", "occ1grp"), sep = "\\.") %>%
-    # filter(occ1grp == "RC" | occ1grp == "RM") %>%
+    separate(status, into = c("lfs", "occ1cat"), sep = "\\.") %>%
+    # filter(occ1cat == "RC" | occ1cat == "RM") %>%
     # filter(scenario %in% c("actual", "actual.rate", "avg.rate", "counter1")) %>%
-    mutate(occ1grp = factor(occ1grp, levels = c("ALL", "M", "C", "R", "RM", "RC", "NR", "NRM", "NRC"))) %>%
+    mutate(occ1cat = factor(occ1cat, levels = c("ALL", "M", "C", "R", "RM", "RC", "NR", "NRM", "NRC"))) %>%
     ggplot() +
         geom_line(aes(x = monyear, y = value, col = scenario)) +
         geom_rect(data = (rec.dates %>% filter(Start > as.yearmon(as.character(tinitial), format = "%Y%m"))),
@@ -133,5 +133,5 @@ df.shares.lom.occ.counter %>%
         scale_x_yearmon() +
         scale_color_manual(values = c("black", "green", "blue", "red", "orange", "magenta", "pink")) +
         labs(x = "", y = "", title = "") +
-        # facet_grid(occ1grp ~ lfs, scales = "free_y")
-        facet_wrap(~ occ1grp, scales = "free_y",  ncol = 3, dir = "h")
+        # facet_grid(occ1cat ~ lfs, scales = "free_y")
+        facet_wrap(~ occ1cat, scales = "free_y",  ncol = 3, dir = "h")

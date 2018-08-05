@@ -8,36 +8,36 @@ load(file = paste0(edir.cps, "merged_2m_all.Rdata"))
 
 # keep only variables needed to construct aggregate flows
 df.merged.2m.all %<>%
-    select(period.1, age.2, lfs.1, lfs.2, occ1grp.1, occ1grp.2, weight.1)
+    select(period.1, age.2, lfs.1, lfs.2, occ1cat.1, occ1cat.2, weight.1)
 
 # whole sample
 df.flowsandrates.cps.occ.whole.sample <-
     df.merged.2m.all %>%
-    group_by(period.1, lfs.1, lfs.2, occ1grp.1, occ1grp.2) %>%
+    group_by(period.1, lfs.1, lfs.2, occ1cat.1, occ1cat.2) %>%
     summarise(f = sum(weight.1)) %>%
-    group_by(period.1, lfs.1, occ1grp.1) %>%
+    group_by(period.1, lfs.1, occ1cat.1) %>%
     mutate(rate = f / sum(f)) %>%
     ungroup() %>%
     mutate(monyear.1 = period.1 %>% as.character() %>% as.yearmon(format = "%Y%m"),
-           status.1 = paste(lfs.1, occ1grp.1, sep = "."),
-           status.2 = paste(lfs.2, occ1grp.2, sep = ".")) %>%
-    select(period.1, monyear.1, lfs.1, lfs.2, occ1grp.1, occ1grp.2, status.1, status.2, f, rate)
+           status.1 = paste(lfs.1, occ1cat.1, sep = "."),
+           status.2 = paste(lfs.2, occ1cat.2, sep = ".")) %>%
+    select(period.1, monyear.1, lfs.1, lfs.2, occ1cat.1, occ1cat.2, status.1, status.2, f, rate)
 
 # restricted sample - age 16 to 75, exclude military and farm occupations
 df.flowsandrates.cps.occ.tmp <-
     df.merged.2m.all %>%
     filter(age.2 >= 16 & age.2 <= 75) %>%
-    filter(!(occ1grp.1 %in% c("FRM", "MIL") | occ1grp.2 %in% c("FRM", "MIL"))) %>%
-    filter(!(lfs.1 == "E" & occ1grp.1 == "X")) %>%
-    group_by(period.1, lfs.1, lfs.2, occ1grp.1, occ1grp.2) %>%
+    filter(!(occ1cat.1 %in% c("FRM", "MIL") | occ1cat.2 %in% c("FRM", "MIL"))) %>%
+    filter(!(lfs.1 == "E" & occ1cat.1 == "X")) %>%
+    group_by(period.1, lfs.1, lfs.2, occ1cat.1, occ1cat.2) %>%
     summarise(f = sum(weight.1)) %>%
-    group_by(period.1, lfs.1, occ1grp.1) %>%
+    group_by(period.1, lfs.1, occ1cat.1) %>%
     mutate(rate = f / sum(f)) %>%
     ungroup() %>%
     mutate(monyear.1 = period.1 %>% as.character() %>% as.yearmon(format = "%Y%m"),
-           status.1 = paste(lfs.1, occ1grp.1, sep = "."),
-           status.2 = paste(lfs.2, occ1grp.2, sep = ".")) %>%
-    select(period.1, monyear.1, lfs.1, lfs.2, occ1grp.1, occ1grp.2, status.1, status.2, f, rate)
+           status.1 = paste(lfs.1, occ1cat.1, sep = "."),
+           status.2 = paste(lfs.2, occ1cat.2, sep = ".")) %>%
+    select(period.1, monyear.1, lfs.1, lfs.2, occ1cat.1, occ1cat.2, status.1, status.2, f, rate)
 
 rm(df.merged.2m.all)
 
@@ -45,9 +45,9 @@ rm(df.merged.2m.all)
 
 # plot the stocks (sum of flows), by labor force status and occupation in the first month
 df.flowsandrates.cps.occ.tmp %>%
-    group_by(period.1, lfs.1, occ1grp.1) %>%
+    group_by(period.1, lfs.1, occ1cat.1) %>%
     mutate(s = sum(f),
-           measure = paste("s", lfs.1, occ1grp.1, sep = ".")) %>%
+           measure = paste("s", lfs.1, occ1cat.1, sep = ".")) %>%
     ungroup() %>%
     ggplot(aes(x = monyear.1, y = s, col = measure)) +
         geom_line() +
@@ -56,22 +56,22 @@ df.flowsandrates.cps.occ.tmp %>%
 # plot transition rates by occupation group - ggplot2
 df.flowsandrates.cps.occ.tmp %>%
     # filter(lfs.1 == "E", lfs.2 == "U") %>%
-    # filter(occ1grp.1 != occ1grp.2) %>%
+    # filter(occ1cat.1 != occ1cat.2) %>%
     # filter(lfs.1 == "U", lfs.2 == "I") %>%
     # filter(lfs.1 == "U", lfs.2 == "E") %>%
-    # filter(occ1grp.2 %in% c("NRC", "NRM")) %>%
+    # filter(occ1cat.2 %in% c("NRC", "NRM")) %>%
     filter(lfs.1 == "U", lfs.2 == "E") %>%
     ggplot(aes(x = monyear.1, y = rate)) +
         geom_line() +
         scale_x_yearmon() +
-        facet_grid(occ1grp.1 ~ occ1grp.2, scales = "free")
+        facet_grid(occ1cat.1 ~ occ1cat.2, scales = "free")
 
 
 # flag periods with changes in transition rates larger than 3*st.dev.
 # these are due to changes in occupation classification
 # introduced in 198301, 199401, 200301,
 df.flowsandrates.cps.occ.tmp %>%
-    filter(lfs.1 == "E" & occ1grp.1 == "NRC" & lfs.2 == "E") %>%
+    filter(lfs.1 == "E" & occ1cat.1 == "NRC" & lfs.2 == "E") %>%
     group_by(status.1, status.2) %>%
     mutate(change = rate - lag(rate),
            stdev = sd(rate - lag(rate), na.rm = TRUE),
@@ -89,7 +89,7 @@ df.flowsandrates.cps.occ.tmp %>%
 
 # plot transition rates by occupation group - dygraph
 df.flowsandrates.cps.occ.tmp %>%
-    filter(lfs.1 == "E" & occ1grp.1 == "NRC" & lfs.2 == "E") %>%
+    filter(lfs.1 == "E" & occ1cat.1 == "NRC" & lfs.2 == "E") %>%
     mutate(status.trans = paste(status.1, status.2, sep = ".")) %>%
     select(monyear.1, status.trans, rate) %>%
     spread(status.trans, rate) %>%
@@ -124,19 +124,19 @@ df.flowsandrates.cps.occ <-
     gather(seas, value, c(NSA, SA)) %>%
     spread(measure, value) %>%
     mutate(monyear.1 = period.1 %>% as.character() %>% as.yearmon("%Y %m")) %>%
-    separate(status.1, into = c("lfs.1", "occ1grp.1"), remove = FALSE) %>%
-    separate(status.2, into = c("lfs.2", "occ1grp.2"), remove = FALSE) %>%
-    select(period.1, monyear.1, lfs.1, lfs.2, occ1grp.1, occ1grp.2, status.1, status.2, seas, f, rate)
+    separate(status.1, into = c("lfs.1", "occ1cat.1"), remove = FALSE) %>%
+    separate(status.2, into = c("lfs.2", "occ1cat.2"), remove = FALSE) %>%
+    select(period.1, monyear.1, lfs.1, lfs.2, occ1cat.1, occ1cat.2, status.1, status.2, seas, f, rate)
 
 save(df.flowsandrates.cps.occ, df.flowsandrates.cps.occ.tmp, df.flowsandrates.cps.occ.whole.sample, file = paste0(edir.cps, "flowsandrates_occ.Rdata"))
 # load(file = paste0(edir.cps, "flowsandrates_occ.Rdata"))
 
-# plot transition rates: in and out of E, for individuals who stay in same occupation group (occ1grp.1 == occ1grp.2)
+# plot transition rates: in and out of E, for individuals who stay in same occupation group (occ1cat.1 == occ1cat.2)
 df.flowsandrates.cps.occ %>%
     # filter(seas == chosen.seas) %>%
-    filter((lfs.1 == "E" & occ1grp.1 == occ1grp.2) |
+    filter((lfs.1 == "E" & occ1cat.1 == occ1cat.2) |
            (lfs.1 == "I" & lfs.2 == "E") |
-           (lfs.1 == "U" & lfs.2 == "E" & occ1grp.1 == occ1grp.2)) %>%
+           (lfs.1 == "U" & lfs.2 == "E" & occ1cat.1 == occ1cat.2)) %>%
     mutate(lfs = paste(lfs.1, lfs.2, sep = ".")) %>%
     {ggplot(data = .) +
         geom_line(aes(x = monyear.1, y = rate, color = seas)) +
@@ -144,7 +144,7 @@ df.flowsandrates.cps.occ %>%
                   aes(xmin = Start, xmax = End, ymin = -Inf, ymax = +Inf), alpha = 0.2) +
         scale_x_yearmon() +
         scale_color_manual(values = c("blue", "black")) +
-        facet_grid(lfs ~ occ1grp.2, scales = "free_y")}
+        facet_grid(lfs ~ occ1cat.2, scales = "free_y")}
 
 # plot SA transition rates: into I
 df.flowsandrates.cps.occ %>%
