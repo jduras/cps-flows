@@ -1,5 +1,5 @@
 
-# compare stocks constructed from CPS micro data with stocks published BLS
+print("Constructing aggregate stocks from CPS micro data")
 
 # merged CPS data from merge_1m.R
 load(file = paste0(edir.cps, "merged_1m_all.Rdata"))

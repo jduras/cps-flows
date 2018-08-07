@@ -1,4 +1,6 @@
 
+print("Constructing occupation category specific transition rates for counterfactual scenarios")
+
 # constructed transition rates from construct_flows_2m_occ.R
 load(file = paste0(edir.cps, "flowsandrates_occ.Rdata"))
 

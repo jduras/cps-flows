@@ -1,5 +1,5 @@
 
-print(paste("Merging all matched data for two consecutive months into one dataset"))
+print("Merging all matched data for two consecutive months into one dataset")
 
 df.merged.2m.all <- NULL
 

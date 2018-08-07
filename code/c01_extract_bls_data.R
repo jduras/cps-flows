@@ -221,6 +221,7 @@ df.flowsandrates.bls <-
     select(series_id, period.1, period.2, lfs.1, lfs.2, seas, f, rate)
 
 save(df.blsdata, df.stocksandshares.bls, df.flowsandrates.bls, file = paste0(odir.bls, "BLS_lf.Rdata"))
+# load(file = paste0(odir.bls, "BLS_lf.Rdata"))
 
 rm(df.flows.bls.sum.1, df.flows.bls.sum.2,
    df.blsdata, df.stocks.bls, df.flows.bls, df.flowsandrates.bls, df.stocksandshares.bls)

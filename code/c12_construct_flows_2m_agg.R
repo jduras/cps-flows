@@ -1,7 +1,9 @@
 
+print("Constructing aggregate flows and transition rates from CPS micro data")
+
 # this file constructs and plots flows and transition rates between different labor force statuses
 
-#### construct stocks, flows, and transition rates, by labor force status ####
+#### construct flows, and transition rates, by labor force status ####
 
 # merged CPS data from merge_2m.R
 load(file = paste0(edir.cps, "merged_2m_all.Rdata"))

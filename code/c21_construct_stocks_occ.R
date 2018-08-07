@@ -1,4 +1,6 @@
 
+print("Constructing stocks by occupation category from CPS micro data")
+
 #### construct stocks and shares, by labor force status and occupation group ####
 
 # merged CPS data from merge_1m.R
@@ -112,6 +114,7 @@ df.stocksandshares.cps.occ %>%
 df.pop.shares.cps.occ.combined <-
     df.stocksandshares.cps.occ.combined %>%
     filter(lfs != "M") %>%
+    filter(seas == "NSA") %>%
     select(sample, period, lfs, occ1cat, s.occ, shr.occ2pop) %>%
     gather(measure, value, c(s.occ, shr.occ2pop)) %>%
     unite(measure, measure, lfs, sep = ".") %>%
@@ -157,6 +160,7 @@ df.pop.shares.cps.occ.combined %>%
 df.uande.shares.cps.occ.combined <-
     df.stocksandshares.cps.occ.combined %>%
     filter(lfs %in% c("E", "U")) %>%
+    filter(seas == "NSA") %>%
     select(sample, period, lfs, occ1cat, shr.occ2lfs) %>%
     rename(y = shr.occ2lfs) %>%
     nest(c(period, y)) %>%

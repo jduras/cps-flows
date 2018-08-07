@@ -1,4 +1,6 @@
 
+print("Constructing population shares using law of motion")
+
 # construct lfs population shares for counterfactual transition rates using law of motion
 
 # population shares from construct_stocks_agg.R

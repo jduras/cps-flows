@@ -1,4 +1,6 @@
 
+print("Constructing population shares by occupation category using law of motion")
+
 # construct lfs population shares for counterfactual transition rates using law of motion
 
 # population shares from construct_stocks_occ.R
@@ -29,6 +31,7 @@ df.shares.occ <-
     df.stocksandshares.cps.occ.combined %>%
     filter(lfs != "M") %>%
     filter(sample == "restricted") %>%
+    gather(measure, value, c(s.occ, shr.occ2lfs, shr.occ2pop)) %>%
     filter(measure == chosen.measure) %>%
     filter(seas == chosen.seas) %>%
     filter(period >= tinitial) %>%

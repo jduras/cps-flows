@@ -1,4 +1,6 @@
 
+print("Constructing occupation category specific flows and transition rates from CPS micro data")
+
 # this file constructs and plots flows and transition rates between different labor force statuses and occupation groups
 
 #### construct stocks, flows, and transition rates, by labor force status and occupation group ####

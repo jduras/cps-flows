@@ -1,4 +1,6 @@
 
+print("Constructing aggregate transition rates for counterfactual scenarios")
+
 # flows from CPS microdata vs BLS official flows data as source for transition rates and stocks:
 # with CPS microdata based transition rates on average
 # - EI, II, UI transition rates are higher than transition rates constructed using BLS flows and stocks data
