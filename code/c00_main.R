@@ -66,12 +66,32 @@ source(paste0(sdir.cps, "c07_merge_1m.R"))
 source(paste0(sdir.cps, "c08_merge_2m.R"))
 # source(paste0(sdir.cps, "c09_merge_2m_yoy.R"))
 
+
+#### aggregate ####
+
+# construct stocks and flows
 source(paste0(sdir.cps, "c11_construct_stocks_agg.R"))
 source(paste0(sdir.cps, "c12_construct_flows_2m_agg.R"))
+
+# construct population shares - counterfactual scenarios
 source(paste0(sdir.cps, "c13_construct_rates_2m_agg_counter.R"))
 source(paste0(sdir.cps, "c14_construct_stocks_agg_lom.R"))
 
+# estimate linear probability models, perform Oaxaca-Blinder decomposition
+source(paste0(sdir.cps, "c15_estimate_lpm_agg.R"))
+source(paste0(sdir.cps, "c16_estimate_lpm_agg_oaxaca.R"))
+
+
+#### occupation specific ####
+
+# construct stocks and flows
 source(paste0(sdir.cps, "c21_construct_stocks_occ.R"))
 source(paste0(sdir.cps, "c22_construct_flows_2m_occ.R"))
+
+# construct population shares - counterfactual scenarios
 source(paste0(sdir.cps, "c23_construct_rates_2m_occ_counter.R"))
 source(paste0(sdir.cps, "c24_construct_stocks_occ_lom.R"))
+
+# estimate linear probability models, perform Oaxaca-Blinder decomposition
+source(paste0(sdir.cps, "c25_estimate_lpm_occ.R"))
+source(paste0(sdir.cps, "c26_estimate_lpm_occ_oaxaca.R"))
