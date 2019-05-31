@@ -48,26 +48,30 @@
 #  LNS17900000  (Seas) Labor Force Flows Unemployed to Not in Labor Force
 #  LNS18000000  (Seas) Labor Force Flows Not in Labor Force to Not in Labor Force
 
+datafile <- "ln.data.1.AllData"
+
 choice <- menu(choices = c("Use existing BLS dataset", "Download new dataset from BLS server"),
                title = "Download data from BLS?")
 
 if (choice == 2) {
-    download.file(url = "https://download.bls.gov/pub/time.series/ln/ln.data.1.AllData",
-                  dest = paste0(ddir.bls, "ln.data.1.AllData"))
+    download.file(url = str_c("https://download.bls.gov/pub/time.series/ln/", datafile),
+                  dest = str_c(ddir_bls, datafile))
 }
 
 print("Extracting BLS data")
 
-df.blsdata.raw <- read_table2(file = paste0(ddir.bls, "ln.data.1.AllData"), col_types = c("cicdi"))
+df_blsdata_raw <- read_table2(file = str_c(ddir_bls, datafile), col_types = c("cicdi"))
 
-# blsdata.raw <-
-#     "ln.data.1.AllData" %T>%
-#     {download.file(url = paste0("https://download.bls.gov/pub/time.series/ln/", .),
-#                    dest = paste0(ddir.bls, .))} %>%
-#     {read_table2(file = paste0(ddir.bls, .), col_types = c("cicdi"))}
+# blsdata_raw <-
+#     datafile %T>%
+#     {download.file(url = str_c("https://download.bls.gov/pub/time.series/ln/", .),
+#                    dest = str_c(ddir_bls, .))} %>%
+#     {read_table2(file = str_c(ddir_bls, .), col_types = c("cicdi"))}
 
-df.blsdata <-
-    df.blsdata.raw %>%
+rm(datafile, choice)
+
+df_blsdata <-
+    df_blsdata_raw %>%
     filter(!is.na(series_id)) %>%
     select(-footnote_codes) %>%
     filter(series_id %in% c(# NSA stocks: POP, LF, E, U, I
@@ -93,15 +97,15 @@ df.blsdata <-
                             )) %>%
     # keep only monthly data, drop quarterly and annual data
     filter(!(str_detect(period, pattern = "Q") | str_detect(period, "M13"))) %>%
-    mutate(period = paste0(year, str_sub(period, 2, 3)) %>% as.numeric()) %>%
+    mutate(period = str_c(year, str_sub(period, 2, 3)) %>% as.numeric()) %>%
     filter(period >= 197501) %>%
     select(-year)
 
-rm(df.blsdata.raw)
+rm(df_blsdata_raw)
 
 # stocks
-df.stocks.bls <-
-    df.blsdata %>%
+df_stocks_bls <-
+    df_blsdata %>%
     filter(series_id %in% c("LNU02000000", "LNU03000000", "LNU05000000",
                             "LNS12000000", "LNS13000000", "LNS15000000")) %>%
     # spread(series_id, value) %>%
@@ -117,8 +121,8 @@ df.stocks.bls <-
     select(series_id, period, lfs, seas, s)
 
 # flows
-df.flows.bls <-
-    df.blsdata %>%
+df_flows_bls <-
+    df_blsdata %>%
     filter(series_id %in% c("LNU07000000", "LNU07100000", "LNU07200000",
                             "LNU07400000", "LNU07500000", "LNU07600000",
                             "LNU07800000", "LNU07900000", "LNU08000000",
@@ -126,66 +130,66 @@ df.flows.bls <-
                             "LNS17400000", "LNS17500000", "LNS17600000",
                             "LNS17800000", "LNS17900000", "LNS18000000")) %>%
     rename(f = value,
-           period.2 = period) %>%
+           period_2 = period) %>%
     mutate(seas = case_when(str_sub(series_id, 3, 3) == "S" ~ "SA",
                             str_sub(series_id, 3, 3) == "U" ~ "NSA"),
-           lfs.1 = case_when(series_id %in% c("LNU07000000", "LNU07400000", "LNU07800000", "LNS17000000", "LNS17400000", "LNS17800000") ~ "E",
+           lfs_1 = case_when(series_id %in% c("LNU07000000", "LNU07400000", "LNU07800000", "LNS17000000", "LNS17400000", "LNS17800000") ~ "E",
                              series_id %in% c("LNU07100000", "LNU07500000", "LNU07900000", "LNS17100000", "LNS17500000", "LNS17900000") ~ "U",
                              series_id %in% c("LNU07200000", "LNU07600000", "LNU08000000", "LNS17200000", "LNS17600000", "LNS18000000") ~ "I",
                              TRUE                                                                                                       ~ NA_character_),
-           lfs.2 = case_when(series_id %in% c("LNU07000000", "LNU07100000", "LNU07200000", "LNS17000000", "LNS17100000", "LNS17200000") ~ "E",
+           lfs_2 = case_when(series_id %in% c("LNU07000000", "LNU07100000", "LNU07200000", "LNS17000000", "LNS17100000", "LNS17200000") ~ "E",
                              series_id %in% c("LNU07400000", "LNU07500000", "LNU07600000", "LNS17400000", "LNS17500000", "LNS17600000") ~ "U",
                              series_id %in% c("LNU07800000", "LNU07900000", "LNU08000000", "LNS17800000", "LNS17900000", "LNS18000000") ~ "I",
                              TRUE                                                                                                       ~ NA_character_)) %>%
-    select(series_id, period.2, lfs.1, lfs.2, seas, f)
+    select(series_id, period_2, lfs_1, lfs_2, seas, f)
 
-# construct stock by adding up flows grouped by first LF status (lfs.1 is status in previous month)
-df.flows.bls.sum.1 <-
-    df.flows.bls %>%
-    group_by(period.2, lfs.1, seas) %>%
+# construct stock by adding up flows grouped by first LF status (lfs_1 is status in previous month)
+df_flows_bls_sum_1 <-
+    df_flows_bls %>%
+    group_by(period_2, lfs_1, seas) %>%
     summarise(s = sum(f)) %>%
-    group_by(lfs.1, seas) %>%
-    mutate(period = lag(period.2, default = 199001)) %>%
+    group_by(lfs_1, seas) %>%
+    mutate(period = lag(period_2, default = 199001)) %>%
     ungroup() %>%
-    rename(lfs = lfs.1) %>%
+    rename(lfs = lfs_1) %>%
     select(period, lfs, seas, s)
 
-# construct stock by adding flows grouped by second LF status (lfs.2 is status in current month)
-df.flows.bls.sum.2 <-
-    df.flows.bls %>%
-    group_by(period.2, lfs.2, seas) %>%
+# construct stock by adding flows grouped by second LF status (lfs_2 is status in current month)
+df_flows_bls_sum_2 <-
+    df_flows_bls %>%
+    group_by(period_2, lfs_2, seas) %>%
     summarise(s = sum(f)) %>%
-    rename(period = period.2) %>%
+    rename(period = period_2) %>%
     ungroup() %>%
-    rename(lfs = lfs.2) %>%
+    rename(lfs = lfs_2) %>%
     select(period, lfs, seas, s)
 
 # compare the difference between stocks constructed by summing BLS flows with BLS stocks
-df.blsdata %>%
+df_blsdata %>%
     filter(series_id %in% c("LNU02000000", "LNU03000000", "LNU05000000",
                             "LNS12000000", "LNS13000000", "LNS15000000")) %>%
-    mutate(series_id = case_when(series_id == "LNU02000000" ~ "E.NSA",
-                                 series_id == "LNU03000000" ~ "U.NSA",
-                                 series_id == "LNU05000000" ~ "I.NSA",
-                                 series_id == "LNS12000000" ~ "E.SA",
-                                 series_id == "LNS13000000" ~ "U.SA",
-                                 series_id == "LNS15000000" ~ "I.SA")) %>%
+    mutate(series_id = recode(series_id, "LNU02000000" = "E_NSA",
+                                         "LNU03000000" = "U_NSA",
+                                         "LNU05000000" = "I_NSA",
+                                         "LNS12000000" = "E_SA",
+                                         "LNS13000000" = "U_SA",
+                                         "LNS15000000" = "I_SA")) %>%
     separate(series_id, into = c("lfs", "seas")) %>%
     rename(s = value) %>%
     bind_rows(stocks = .,
-              sumflows1 = df.flows.bls.sum.1,
-              sumflows2 = df.flows.bls.sum.2,
+              sumflows1 = df_flows_bls_sum_1,
+              sumflows2 = df_flows_bls_sum_2,
               .id = "source") %>%
     spread(source, s) %>%
-    mutate(err.sum.of.flows1 = (sumflows1 - stocks) / stocks,
-           err.sum.of.flows2 = (sumflows2 - stocks) / stocks) %>%
+    mutate(err_sum_of_flows1 = (sumflows1 - stocks) / stocks,
+           err_sum_of_flows2 = (sumflows2 - stocks) / stocks) %>%
     unite(measure, lfs, seas, sep = ".") %>%
     gather(source, value, -c(period, measure)) %>%
-    mutate(monyear = period %>% as.character() %>% as.yearmon(format = "%Y%m")) %>%
+    mutate(yearm = period %>% as.character() %>% as.yearmon(format = "%Y%m")) %>%
     filter(str_sub(source, 1, 3) == "err") %>%
     filter(!is.na(value)) %>%
     separate(measure, into = c("lfs", "seas")) %>%
-    ggplot(aes(x = monyear, y = value, col = source)) +
+    ggplot(aes(x = yearm, y = value, col = source)) +
         geom_line() +
         geom_hline(yintercept = 0, linetype = "dotted") +
         scale_x_yearmon() +
@@ -196,32 +200,32 @@ df.blsdata %>%
         facet_grid(lfs ~ seas, scales = "free_y")
 
 # construct population shares by LFS
-df.stocksandshares.bls <-
-    df.stocks.bls %>%
+df_stocksandshares_bls <-
+    df_stocks_bls %>%
     group_by(period, seas) %>%
-    mutate(shr.lfs2pop = s / sum(s)) %>%
+    mutate(shr_lfs2pop = s / sum(s)) %>%
     ungroup()
 
 # plot population shares by LFS
-df.stocksandshares.bls %>%
-    mutate(monyear = period %>% as.character() %>% as.yearmon(format = "%Y%m")) %>%
-    ggplot(aes(x = monyear, y = shr.lfs2pop)) +
+df_stocksandshares_bls %>%
+    mutate(yearm = period %>% as.character() %>% as.yearmon(format = "%Y%m")) %>%
+    ggplot(aes(x = yearm, y = shr_lfs2pop)) +
         geom_line() +
         scale_x_yearmon() +
         facet_grid(lfs ~ seas, scales = "free")
 
 # construct transition rates
-df.flowsandrates.bls <-
-    df.flows.bls %>%
+df_flowsandrates_bls <-
+    df_flows_bls %>%
     group_by(series_id) %>%
-    mutate(period.1 = lag(period.2, default = 199001)) %>%
-    group_by(period.2, lfs.1, seas) %>%
+    mutate(period_1 = lag(period_2, default = 199001)) %>%
+    group_by(period_2, lfs_1, seas) %>%
     mutate(rate = f / sum(f)) %>%
     ungroup() %>%
-    select(series_id, period.1, period.2, lfs.1, lfs.2, seas, f, rate)
+    select(series_id, period_1, period_2, lfs_1, lfs_2, seas, f, rate)
 
-save(df.blsdata, df.stocksandshares.bls, df.flowsandrates.bls, file = paste0(odir.bls, "BLS_lf.Rdata"))
-# load(file = paste0(odir.bls, "BLS_lf.Rdata"))
+save(df_blsdata, df_stocksandshares_bls, df_flowsandrates_bls, file = str_c(odir_bls, "BLS_lf.Rdata"))
+# load(file = str_c(odir_bls, "BLS_lf.Rdata"))
 
-rm(df.flows.bls.sum.1, df.flows.bls.sum.2,
-   df.blsdata, df.stocks.bls, df.flows.bls, df.flowsandrates.bls, df.stocksandshares.bls)
+rm(df_flows_bls_sum_1, df_flows_bls_sum_2,
+   df_blsdata, df_stocks_bls, df_flows_bls, df_flowsandrates_bls, df_stocksandshares_bls)
