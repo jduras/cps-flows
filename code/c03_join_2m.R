@@ -1,70 +1,75 @@
 
-print(paste("Matching and merging observations for two consecutive months"))
+tic()
 
-t1 <- tfirst
+message("Matching and merging observations for two consecutive months")
+
+t1 <- tfst
 
 breaks <- c(197801, 198507, 198510, 199401, 199506, 199507, 199508, 199509)
 
-while (t1 < tlast) {
+while (t1 < tlst) {
 
     t2 <- if_else(t1 %% 100 == 12, t1 + 89, t1 + 1)
 
-    print(paste(" now matching:", t1, "with", t2))
+    message(str_c(" now matching: ", t1, " with ", t2))
 
     if (!(t2 %in% breaks)) {
 
         # load data for month t1
-        load(file = paste0(edir.cps, "cpsb_", t1, ".Rdata"))
+        load(file = str_c(edir_cps, "cpsb_", t1, ".Rdata"))
 
-        df.cpsdata.1 <-
-            df.cpsdata %>%
+        df_cpsdata_1 <-
+            df_cpsdata %>%
             filter(!(mis %in% c(4, 8))) %>%
-            mutate(mis.in.1 = mis,
-                   age.in.1 = age)
+            mutate(mis_in_1 = mis,
+                   age_in_1 = age)
 
         # load data for month t2
-        load(file = paste0(edir.cps, "cpsb_", t2, ".Rdata"))
+        load(file = str_c(edir_cps, "cpsb_", t2, ".Rdata"))
 
-        df.cpsdata.2 <-
-            df.cpsdata %>%
+        df_cpsdata_2 <-
+            df_cpsdata %>%
             filter(!(mis %in% c(1, 5))) %>%
-            mutate(mis.in.1 = mis - 1,
-                   age.in.1 = age)
+            mutate(mis_in_1 = mis - 1,
+                   age_in_1 = age)
 
         # First round of matching records - people whose age did not change between the two month
         # find all individuals, matched if they agree on
         #	gestcen, hid, pid, race, female, age
 
-        df.merged.2m.part1 <-
-            inner_join(df.cpsdata.1, df.cpsdata.2,
-                       by = c("gestcen", "hid", "pid", "white", "black", "female", "age.in.1", "mis.in.1"), suffix = c(".1", ".2"))
+        df_merged_2m_part1 <-
+            inner_join(df_cpsdata_1, df_cpsdata_2,
+                       by = c("gestcen", "hid", "pid", "white", "black", "female", "age_in_1", "mis_in_1"),
+                       suffix = c("_1", "_2"))
 
         # Second round of matching records - people whose age did change by 1 between the two month
 
-        df.unmatched.1 <-
-            anti_join(df.cpsdata.1, df.cpsdata.2,
-                      by = c("gestcen", "hid", "pid", "white", "black", "female", "age.in.1", "mis.in.1"))
+        df_unmatched_1 <-
+            anti_join(df_cpsdata_1, df_cpsdata_2,
+                      by = c("gestcen", "hid", "pid", "white", "black", "female", "age_in_1", "mis_in_1"))
 
-        df.cpsdata.2 %<>%
-           mutate(age.in.1 = age.in.1 - 1)
+        df_cpsdata_2 %<>%
+           mutate(age_in_1 = age_in_1 - 1)
 
         # find all individuals, matched if they agree on
         #	gestcen, hid, pid, race, female, and age in t2 = age in t1 + 1
 
-        df.merged.2m.part2 <-
-            inner_join(df.unmatched.1, df.cpsdata.2,
-                       by = c("gestcen", "hid", "pid", "white", "black", "female", "age.in.1", "mis.in.1"), suffix = c(".1", ".2"))
+        df_merged_2m_part2 <-
+            inner_join(df_unmatched_1, df_cpsdata_2,
+                       by = c("gestcen", "hid", "pid", "white", "black", "female", "age_in_1", "mis_in_1"),
+                       suffix = c("_1", "_2"))
 
         # create combined data set with observations from both rounds of matching
-        df.merged.2m <-
-            bind_rows(df.merged.2m.part1, df.merged.2m.part2) %>%
-            select(-c(mis.in.1, age.in.1))
+        df_merged_2m <-
+            bind_rows(df_merged_2m_part1, df_merged_2m_part2) %>%
+            select(-c(mis_in_1, age_in_1))
 
-        save(df.merged.2m, file = paste0(edir.cps, "merged_2m_", t1, ".Rdata"))
-        rm(df.cpsdata, df.cpsdata.1, df.cpsdata.2, df.unmatched.1, df.merged.2m.part1, df.merged.2m.part2, df.merged.2m)
+        save(df_merged_2m, file = str_c(edir_cps, "merged_2m_", t1, ".Rdata"))
+        rm(df_cpsdata, df_cpsdata_1, df_cpsdata_2, df_unmatched_1, df_merged_2m_part1, df_merged_2m_part2, df_merged_2m)
 
     }
 
     t1 <- t2
 }
 
+toc()

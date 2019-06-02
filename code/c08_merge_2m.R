@@ -1,42 +1,47 @@
 
-print("Merging all matched data for two consecutive months into one dataset")
+tic()
 
-df.merged.2m.all <- NULL
+message("Merging all matched data for two consecutive months into one dataset")
 
-t1 <- tfirst
+df_merged_2m_all <- vector("list", length(tseq) - 1)
+
+t1 <- tfst
+i <- 1
 
 breaks <- c(197601, 197801, 198507, 198510, 199401, 199506, 199507, 199508, 199509)
 
-while (t1 < tlast) {
+while (t1 < tlst) {
 
     t2 <- if_else(t1 %% 100 == 12, t1 + 89, t1 + 1)
 
-    print(paste0(" now adding: ", t1, "-", t2))
+    message(str_c(" now adding: ", t1, "-", t2))
 
     # there are some gaps in the series due to changes in the household identifiers in the public-use files - it is impossible to match data for some periods
     if (!(t2 %in% breaks)) {
-        load(file = paste0(edir.cps, "merged_2m_", t1, ".Rdata"))
+        load(file = str_c(edir_cps, "merged_2m_", t1, ".Rdata"))
 
-        df.merged.2m.all <-
-            c(df.merged.2m.all,
-              df.merged.2m %>%
-                  filter(age.2 >= 16) %>%
-                  filter(lfs.1 != "M" & lfs.2 != "M") %>%
-                  select(-c(mis.2, period.2)) %>%
-                  list())
+        df_merged_2m_all[[i]] <-
+            df_merged_2m %>%
+            filter(age_2 >= 16) %>%
+            filter(lfs_1 != "M" & lfs_2 != "M") %>%
+            # filter(!(occ1cat_1 == "MIL")) %>%
+            select(-c(mis_2, period_2))
     }
 
-    rm(df.merged.2m)
+    rm(df_merged_2m)
 
     # go to next month
     t1 <- t2
+    i <- i + 1
 }
 
-print("Transforming dataset from list to tibble")
+message("Transforming dataset from list to tibble")
 
-df.merged.2m.all %<>%
+df_merged_2m_all %<>%
     bind_rows()
 
-print("Saving dataset")
+message("Saving dataset")
 
-save(df.merged.2m.all, file = paste0(edir.cps, "merged_2m_all.Rdata"))
+save(df_merged_2m_all, file = str_c(edir_cps, "merged_2m_all.Rdata"))
+
+toc()

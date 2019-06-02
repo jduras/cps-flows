@@ -1,42 +1,46 @@
 
-print("Merging observations from all months into one dataset")
+tic()
 
-df.merged.1m.all <- NULL
+message("Merging observations from all months into one dataset")
 
-t <- tfirst
+df_merged_1m_all <- vector("list", length(tseq))
 
-while (t <= tlast) {
+t <- tfst
+i <- 1
 
-    print(paste(" now getting data for",t))
+while (t <= tlst) {
 
-    load(file = paste0(edir.cps, "cpsb_", t, ".Rdata"))
+    message(str_c(" now getting data for ", t))
 
-    df.merged.1m.all <-
-        c(df.merged.1m.all,
-          df.cpsdata %>%
-              filter(age >= 16) %>%
-              filter(!(occ1cat %in% c("MIL"))) %>%
-              list())
+    load(file = str_c(edir_cps, "cpsb_", t, ".Rdata"))
 
-    rm(df.cpsdata)
+    df_merged_1m_all[i] <-
+        df_cpsdata %>%
+        filter(age >= 16) %>%
+        filter(!(occ1cat == "MIL"))
+
+    rm(df_cpsdata)
 
     t <- if_else(t %% 100 == 12, t + 89, t + 1)
+    i <- i + 1
 }
 
-print("Transforming dataset from list to tibble")
+message("Transforming dataset from list to tibble")
 
 # change from list to dataframe
-df.merged.1m.all %<>%
+df_merged_1m_all %<>%
     bind_rows()
 
 # restricted sample as in Cortes, Jaimovich, Nekarda, Siu
-df.merged.1m.all.sample <-
-    df.merged.1m.all %>%
+df_merged_1m_all_sample <-
+    df_merged_1m_all %>%
     filter(age >= 16 & age <= 75) %>%
     filter(lfs != "M") %>%
     filter(!(occ1cat %in% c("FRM", "MIL"))) %>%
     filter(!(lfs == "E" & occ1cat == "X"))
 
-print("Saving dataset")
+message("Saving merged dataset")
 
-save(df.merged.1m.all, df.merged.1m.all.sample, file = paste0(edir.cps, "merged_1m_all.Rdata"))
+save(df_merged_1m_all, df_merged_1m_all_sample, file = str_c(edir_cps, "merged_1m_all.Rdata"))
+
+toc()
