@@ -58,7 +58,7 @@ if (choice == 2) {
                   dest = str_c(ddir_bls, datafile))
 }
 
-print("Extracting BLS data")
+message("Extracting BLS data")
 
 df_blsdata_raw <- read_table2(file = str_c(ddir_bls, datafile), col_types = c("cicdi"))
 

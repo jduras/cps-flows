@@ -8,7 +8,7 @@ breaks <- c(197801, 198507, 198510, 199401, 199506, 199507, 199508, 199509)
 future_walk(
     .progress = TRUE,
     .x = tseq[-1],
-     .f = function(t2 = .x) {
+    .f = function(t2 = .x) {
 
          t1 <- if_else(t2 %% 100 == 01, t2 - 89, t2 - 1)
 
