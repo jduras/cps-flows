@@ -35,12 +35,12 @@ while (t1 < tlst) {
     i <- i + 1
 }
 
-message("Transforming dataset from list to tibble")
+message("Transforming merged dataset from list to tibble")
 
 df_merged_2m_all %<>%
     bind_rows()
 
-message("Saving dataset")
+message("Saving merged dataset")
 
 save(df_merged_2m_all, file = str_c(edir_cps, "merged_2m_all.Rdata"))
 

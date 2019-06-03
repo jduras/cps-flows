@@ -15,11 +15,12 @@ df_merged_1m_all <-
                 filter(!(occ1cat == "MIL"))
         })
 
-message("Transforming dataset from list to tibble")
+message("Transforming merged dataset from list to tibble")
 
 # change from list to dataframe
 df_merged_1m_all %<>%
-    bind_rows()
+    bind_rows() %>%
+    arrange(period)
 
 # restricted sample as in Cortes, Jaimovich, Nekarda, Siu
 df_merged_1m_all_sample <-
