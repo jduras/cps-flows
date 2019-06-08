@@ -3,10 +3,10 @@
 
 message("Performing Oaxaca-Blinder decompositions for transition from one labor force status to another")
 
-if (!exists("df_lpm_lresults_agg")) load(file = str_c(edir_cps, "out_lpm_results_agg.Rdata"))
+if (!exists("df_lpm_results_agg")) load(file = str_c(edir_cps, "out_lpm_results_agg.Rdata"))
 
 all_names <-
-    df_lpm_lresults_agg %>%
+    df_lpm_results_agg %>%
     pull(lpm_UE) %>%
     pluck(1) %>%
     coefficients() %>%

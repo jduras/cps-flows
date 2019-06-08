@@ -46,7 +46,6 @@ rm(df_merged_2m_all)
 # dataset for linear probability model
 df_lpm_data_agg <-
     df_lpm_data_agg %>%
-    # df_merged_2m_all %>%
     select(period_1, gestcen, age_1, educ_1, female, white, married_1, lfs_1, occ1cat_1, udur_1, weight_1, lfs_2, occ1cat_2) %>%
     filter(age_1 >= 16) %>%
     # filter(age_1 >= 16 & age_1 <= 75) %>%
@@ -67,7 +66,7 @@ df_lpm_data_agg <-
                              age_1 %in% 45:54 ~ 5L,
                              age_1 %in% 55:64 ~ 6L,
                              age_1 %in% 65:75 ~ 7L,
-                             TRUE                ~ NA_integer_) %>% factor() %>% relevel(ref = 5),
+                             TRUE             ~ NA_integer_) %>% factor() %>% relevel(ref = 5),
         # education categories
         educat_1 = case_when(educ_1 == 1        ~ "hsd",
                              educ_1 %in% c(2:3) ~ "hsg",
@@ -85,7 +84,7 @@ df_lpm_data_agg <-
                               udur_1 %in% 29:32              ~ 8L,
                               udur_1 %in% 33:40              ~ 9L,
                               #udur_1 %in% 41:68              ~ 10L,
-                              #udur_1 >= 69                      ~ 11L
+                              #udur_1 >= 69                   ~ 11L
                               #udur_1 %in% 69:96              ~ 11L,
                               udur_1 %in% 41:52              ~ 10L,
                               udur_1 %in% 53:96              ~ 11L,
