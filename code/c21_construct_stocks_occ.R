@@ -187,6 +187,6 @@ df_uande_shares_cps_occ_combined %>%
 
 save(df_pop_shares_cps_occ_combined, df_uande_shares_cps_occ_combined,
      df_stocksandshares_cps_occ, df_stocksandshares_cps_occ_whole_sample, df_stocksandshares_cps_occ_combined,
-     file = str_c(edir_cps, "out_stocksandshares_occ_Rdata"))
+     file = str_c(edir_cps, "out_stocksandshares_occ.Rdata"))
 
-# load(file = str_c(edir_cps, "out_stocksandshares_occ_Rdata"))
+# load(file = str_c(edir_cps, "out_stocksandshares_occ.Rdata"))

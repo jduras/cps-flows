@@ -94,7 +94,7 @@ sim_results <-
                     filter(period_1 == t1) %>%
                     select(lfs_1, lfs_2, rate) %>%
                     spread(lfs_2, rate) %>%
-                    column_to_rownames("lfs_1") %>%
+                    select(-lfs_1) %>%
                     as.matrix()
 
                 # construct shares using law of motion
