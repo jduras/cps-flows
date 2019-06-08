@@ -45,28 +45,6 @@ df_lpm_ob_agg <-
 
 toc()
 
-
-tic()
-
-# perform Oaxaca-Blinder decompositions
-df_lpm_ob_agg <-
-    df_lpm_lresults_agg %>%
-    filter(!(cycle_id %in% c("R1", "R3", "R4", "E2"))) %>%
-    mutate(ob_UE = pmap(list(lpm_UE[cycle_id == "E1"], lpm_UE, cycle_id),
-                        ~oaxacablinder_new(..1, ..2, model_names = c("E1", ..3), groups_labels = grp_labs_U, groups_vars = grp_vars_U)),
-           ob_IE = pmap(list(lpm_IE[cycle_id == "E1"], lpm_IE, cycle_id),
-                        ~oaxacablinder_new(..1, ..2, model_names = c("E1", ..3), groups_labels = grp_labs_I, groups_vars = grp_vars_I)),
-           ob_EU = pmap(list(lpm_EU[cycle_id == "E1"], lpm_EU, cycle_id),
-                        ~oaxacablinder_new(..1, ..2, model_names = c("E1", ..3), groups_labels = grp_labs_E, groups_vars = grp_vars_E))) %>%
-    filter(cycle_id != "E1") %>%
-    select(cycle_id, starts_with("ob_")) %>%
-    gather(lfs_trans, ob, -cycle_id) %>%
-    mutate(lfs_trans = str_sub(lfs_trans, 4, 5))
-
-toc()
-
-
-
 save(df_lpm_ob_agg, file = str_c(edir_cps, "out_lpm_ob_agg.Rdata"))
 # load(file = str_c(edir_cps, "out_lpm_ob_agg.Rdata"))
 

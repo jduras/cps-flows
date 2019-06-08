@@ -28,8 +28,8 @@ oaxacablinder <- function(model_A, model_B, model_names = c("A", "B"), groups_la
     } else {
         nw <- map(w, ~.x / sum(.x))
         mX <- map2(X, nw, ~colSums(.y * .x))
-        VX <- pmap(list(X, mX, nw, w),
-                   function(X, mX, nw, w) {crossprod( sqrt(nw) * (X - mX) ) / (sum(w) - 1)})
+        VX <- pmap(list(X, mX, nw, w, n, k),
+                   function(X, mX, nw, w, n, k) {crossprod( sqrt(nw) * (X - matrix(mX, nrow = n, ncol = k, byrow = TRUE)) ) / (sum(w) - 1)})
         mX <- map(mX, as.matrix)
         Vb <- pmap(list(model, w, n, k),
                    function(model, w, n, k) {vcov(model) * (n - k) / (sum(w) - k)})
