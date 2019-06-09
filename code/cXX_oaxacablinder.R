@@ -172,11 +172,11 @@ tidy.oaxacablinder <- function(results, detailed = FALSE, conf.level = 0.95) {
 
     k <- length(results$Q[[chosen_detail]][, 1])
 
-    tibble(term = c("difference",
-                    "explained.total",
-                    paste0("explained.", rownames(results$Q[[chosen_detail]])[2:k]),
-                    "unexplained.total",
-                    paste0("unexplained.", rownames(results$U[[chosen_detail]]))),
+    tibble(term = c("difference_total",
+                    "explained_total",
+                    str_c("explained_", rownames(results$Q[[chosen_detail]])[2:k]),
+                    "unexplained_total",
+                    str_c("unexplained_", rownames(results$U[[chosen_detail]]))),
            estimate = results %$% c(R,
                                     Q[["total"]],
                                     Q[[chosen_detail]][2:k],
@@ -197,10 +197,11 @@ tidy.oaxacablinder <- function(results, detailed = FALSE, conf.level = 0.95) {
 plot.oaxacablinder <- function(results, detailed = FALSE, conf.level = 0.95) {
 
     tidy.oaxacablinder(results, detailed, conf.level) %>%
-    separate(term, into = c("component", "variable"), sep = "\\.", extra = "merge", fill = "right") %>%
+    clean_names() %>%
+    separate(term, into = c("component", "variable"), sep = "_", extra = "merge", fill = "right") %>%
     filter(component %in% c("explained", "unexplained")) %>%
     mutate(variable = if_else(variable == "total", " total", variable)) %>%
-    ggplot(aes(x = estimate, y = variable, xmin = conf.low, xmax = conf.high, height = 0.2)) +
+    ggplot(aes(x = estimate, y = variable, xmin = conf_low, xmax = conf_high, height = 0.2)) +
         geom_point() +
         geom_errorbarh() +
         geom_vline(xintercept = 0, linetype = "dotted") +

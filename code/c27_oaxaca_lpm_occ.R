@@ -78,62 +78,61 @@ save(df_lpm_ob_occ, file = str_c(edir_cps, "out_lpm_ob_occ.Rdata"))
 #  U_RM -> E_RM, E3-E6 vs E1
 #  U_RC -> E_RC, E4-E6 vs E3
 
-
-df_lpm_ob_occ_tidy <-
+df_lpm_ob_occ_tidy_detailed <-
     df_lpm_ob_occ %>%
-    mutate(ob = map(ob, tidy.oaxacablinder)) %>%
+    mutate(ob = map(ob, . %>% tidy.oaxacablinder(detailed = TRUE) %>% clean_names())) %>%
     unnest() %>%
-    separate(term, into = c("component", "variable"), sep = "\\.", extra = "merge", fill = "right") %>%
-    filter(component %in% c("explained", "unexplained")) %>%
+    separate(term, into = c("component", "variable"), sep = "_", extra = "merge", fill = "right") %>%
     mutate(variable = if_else(str_sub(variable, 1, 7) == "udurcat" & str_length(variable) == 10,
                               str_c(str_sub(variable, 1, 9), "0",
-                                    str_sub(variable, 10, 10)), variable)) %>%
-    mutate(variable = if_else(variable == "total", " total", variable))
+                                    str_sub(variable, 10, 10)), variable))
 
-df_lpm_ob_occ_tidy %>%
-    ggplot(aes(x = estimate, y = variable, xmin = conf.low, xmax = conf.high, height = 0.2)) +
-    geom_point() +
-        geom_errorbarh() +
-        geom_vline(xintercept = 0, linetype = "dotted") +
-        labs(title = "Oaxaca-Blinder decomposition",
-             x = "", y = "") +
-        facet_grid(cycle_id ~ status_trans + component, scales = "free_x")
+df_lpm_ob_occ_tidy_grouped <-
+    df_lpm_ob_occ %>%
+    mutate(ob = map(ob, . %>% tidy.oaxacablinder(detailed = FALSE) %>% clean_names())) %>%
+    unnest() %>%
+    separate(term, into = c("component", "variable"), sep = "_", extra = "merge", fill = "right") %>%
+    mutate(variable = if_else(str_sub(variable, 1, 7) == "udurcat" & str_length(variable) == 10,
+                              str_c(str_sub(variable, 1, 9), "0",
+                                    str_sub(variable, 10, 10)), variable))
+
 
 chosen_decomposition <- "U_E"
 
-df_lpm_ob_occ_tidy %>%
+df_lpm_ob_occ_tidy_grouped %>%
     filter(str_detect(status_trans, pattern = fixed(chosen_decomposition))) %>%
-    filter(str_sub(variable, 1, 5) != "month") %>%
-    filter(str_sub(variable, 1, 5) != "state") %>%
-    filter(str_sub(variable, 1, 7) != "udurcat") %>%
-    ggplot(aes(x = estimate, y = variable, xmin = conf.low, xmax = conf.high, height = 0.2)) +
-        geom_point() +
-        geom_errorbarh() +
-        geom_vline(xintercept = 0, linetype = "dotted") +
-        labs(title = paste("Oaxaca-Blinder decomposition for", chosen_decomposition),
-             x = "", y = "") +
-        facet_grid(cycle_id ~  status_trans + component, scales = "free_x")
+    filter(component %in% c("explained", "difference")) %>%
+    filter(str_sub(variable, 1, 8) == "grp_udur" | variable == "total") %>%
+    mutate(component = str_c(component, variable, sep = "_")) %>%
+    ggplot() +
+        geom_vline(xintercept = 0, col = "gray30") +
+        geom_point(aes(x = estimate, y = cycle_id, col = component)) +
+        geom_errorbarh(aes(xmin = conf_low, xmax = conf_high, y = cycle_id, col = component, height = 0.1)) +
+        scale_color_manual(values = c("gray50", "red", "blue")) +
+        labs(title = str_c("Oaxaca-Blinder decomposition for ", chosen_decomposition),
+             x = "", y = "", col = "") +
+        facet_wrap(~ status_trans) +
+        theme(legend.position = "top",
+              legend.justification = "left")
 
-df_lpm_ob_occ_tidy %>%
-    filter(str_detect(status_trans, pattern = fixed(chosen_decomposition))) %>%
-    filter(component == "explained") %>%
-    filter(str_sub(variable, 1, 7) == "udurcat" | variable == " total") %>%
-    ggplot(aes(x = estimate, y = variable, xmin = conf.low, xmax = conf.high, height = 0.2)) +
-        geom_point() +
-        geom_errorbarh() +
-        geom_vline(xintercept = 0, linetype = "dotted") +
-        labs(title = paste("Oaxaca-Blinder decomposition for", chosen_decomposition),
-             x = "", y = "") +
-        facet_grid(cycle_id ~ status_trans + component, scales = "free_x")
 
-df_lpm_ob_occ_tidy %>%
-    filter(str_detect(status_trans, pattern = fixed(chosen_decomposition))) %>%
-    filter(component == "explained") %>%
-    filter(str_sub(variable, 1, 7) == "udurcat" | variable == " total") %>%
-    ggplot(aes(x = estimate, y = cycle_id, col = cycle_id, xmin = conf.low, xmax = conf.high, height = 0.2)) +
-        geom_point() +
-        geom_errorbarh() +
+g <- ggplot() +
+        geom_point(aes(x = estimate, y = variable)) +
         geom_vline(xintercept = 0, linetype = "dotted") +
-        labs(title = paste("Oaxaca-Blinder decomposition for", chosen_decomposition),
-             x = "", y = "") +
-        facet_grid(variable ~ status_trans + component, scales = "free_x")
+        xlim(c(-0.5, 1)) +
+        labs(x = "", y = "") +
+        facet_wrap(~component, ncol = 1)
+
+g %+% {df_lpm_ob_occ_tidy_detailed %>%
+            mutate(estimate = estimate / estimate[component == "difference"]) %>%
+            filter(cycle_id == "E6_whole", status_trans == "U_E_NRM_NRM") %>%
+            filter(component %in% c("explained", "unexplained")) %>%
+            filter(str_sub(variable, 1, 5) != "month") %>%
+            filter(str_sub(variable, 1, 6) != "agecat") %>%
+            mutate(variable = if_else(variable == "total", " total", variable))}
+
+g %+% {df_lpm_ob_occ_tidy_grouped %>%
+            mutate(estimate = estimate / estimate[component == "difference"]) %>%
+            filter(cycle_id == "E6_whole", status_trans == "U_E_NRM_NRM") %>%
+            filter(component %in% c("explained", "unexplained")) %>%
+            mutate(variable = if_else(variable == "total", " total", variable))}
