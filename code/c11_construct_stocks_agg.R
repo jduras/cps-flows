@@ -15,7 +15,7 @@ df_stocksandshares_cps_agg <-
     ungroup() %>%
     gather(measure, y, c(s, shr_lfs2pop)) %>%
     nest(c(period, y)) %>%
-    sa_ssm() %>%
+    mutate(data = map(data, sa_ssm)) %>%
     unnest() %>%
     rename(NSA = y,
            SA = y_ks) %>%

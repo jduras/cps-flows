@@ -89,13 +89,12 @@ df_stocksandshares_cps_occ_combined <-
               .id = "sample") %>%
     gather(measure, y, c(s_occ, shr_occ2lfs, shr_occ2pop)) %>%
     nest(c(period, y)) %>%
-    sa_ssm() %>%
+    mutate(data = future_map(data, sa_ssm)) %>%
     unnest() %>%
     rename(NSA = y,
            SA = y_ks) %>%
     gather(seas, value, c(SA, NSA)) %>%
     spread(measure, value)
-
 
 # plot shares of population in different labor force and occupation groups
 df_stocksandshares_cps_occ %>%
@@ -129,7 +128,7 @@ df_pop_shares_cps_occ_combined <-
     select(sample, period, occ1cat, shr_occ2pop_E, shr_occ2pop_U, shr_occ2pop_E_plus_U, ur3, ur3_index_200712, ur3_change_200712) %>%
     gather(measure, y, -c(sample, period, occ1cat)) %>%
     nest(c(period, y)) %>%
-    sa_ssm() %>%
+    mutate(data = future_map(data, sa_ssm)) %>%
     unnest() %>%
     rename(NSA = y,
            SA = y_ks) %>%
@@ -163,7 +162,7 @@ df_uande_shares_cps_occ_combined <-
     select(sample, period, lfs, occ1cat, shr_occ2lfs) %>%
     rename(y = shr_occ2lfs) %>%
     nest(c(period, y)) %>%
-    sa_ssm() %>%
+    mutate(data = future_map(data, sa_ssm)) %>%
     unnest() %>%
     rename(NSA = y,
            SA = y_ks) %>%

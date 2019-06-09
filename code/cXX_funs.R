@@ -1,14 +1,14 @@
 
 # recession dates
-rec.dates <-
+rec_dates <-
     nberDates() %>%
     as_tibble() %>%
     mutate_all(funs(. %>% as.character() %>% as.yearmon("%Y%m%d"))) %>%
-    as.data.frame()
-
+    as_tibble()
 
 # define function for NBER recession shading
 nber_shades <- function(g, periods){
+    periods <- as.data.frame(periods)
     for(i in seq_along(periods[, 1])){
         g <- dyShading(g, from = periods[i, 1], to = periods[i, 2], color = "#F0F0F8")
     }
@@ -45,25 +45,42 @@ myplot <- function(x, col = "black", lwd = NULL, lty = NULL, ...){
 }
 
 
-# funstion sa.SSM uses local level model with monthly seasonal component and performs Kalman smoothing
-sa.SSM <- function(df) {
+# funstion sa_ssm uses local level model with monthly seasonal component and performs Kalman smoothing
+sa_ssm <- function(df) {
 
-    # input: df is expected to be a tibble with list column named data,
-    #        each element in data column is itself a tibble with data stored in a column named y (double)
+    # input: df is expected to be a tibble with data stored in a column named y (double)
+    # ou2tput: df_ssm contains the same elements as df but an extra column named y_ks (double) which is SA y
 
-    # output: df.SSM contains the same elements as df but data tibble have an extra column named y.KS (double) which is Kalman smoothed y
+    df %>%
+        mutate(
+            # define state space model - local level with seasonality
+            y_ks = SSModel(y ~ SSMtrend(degree = 1, Q = NA) +
+                               SSMseasonal(period = 12, sea.type = "dummy", Q = NA), H = NA,
+                           data = .) %>%
+                # maximum likelihood estimation
+                fitSSM(inits = log(c(0.01, 0.01, 0.01)), method = "Nelder-Mead") %$%
+                # Kalman smoothing
+                KFS(model, smoothing = c("state", "disturbance")) %$%
+                # extract smoothed level + disturbance
+                {alphahat[, "level"] + epshat[, 1]})
+}
 
-    df.SSM <-
-        df %>% mutate(data = map(data, ~(.x %>%
-                                             mutate(y.KS = .x %>%
-                                                        # define state space model - local level with seasonality
-                                                        SSModel(y ~ SSMtrend(degree = 1, Q = NA) +
-                                                                    SSMseasonal(period = 12, sea.type = "dummy", Q = NA), H = NA, data = .) %>%
-                                                        # maximum likelihood estimation
-                                                        fitSSM(inits=log(c(0.01, 0.01, 0.01)), method = "Nelder-Mead") %$%
-                                                        # Kalman smoothing
-                                                        KFS(model, smoothing = c("state", "disturbance")) %$%
-                                                        # extract smoothed level + disturbance
-                                                        {alphahat[,"level"] + epshat}))))
+smooth_ssm <- function(df) {
+
+    # input: df is expected to be a tibble with data stored in a column named y (double)
+    # output: df_ssm contains the same elements as df but an extra column named y_ks (double) which is Kalman smoothed y
+
+    df_ssm <-
+        df %>% mutate(
+            # define state space model - local level with seasonality
+            y_smooth = SSModel(y ~ SSMtrend(degree = 1, Q = NA) +
+                                   SSMseasonal(period = 12, sea.type = "dummy", Q = NA), H = NA,
+                               data = .) %>%
+                # maximum likelihood estimation
+                fitSSM(inits = log(c(0.01, 0.01, 0.01)), method = "Nelder-Mead") %$%
+                # Kalman smoothing
+                KFS(model, smoothing = c("state", "disturbance")) %$%
+                # extract smoothed level + disturbance
+                {alphahat[, "level"]})
 }
 

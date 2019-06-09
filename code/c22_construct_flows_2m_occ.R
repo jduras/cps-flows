@@ -132,8 +132,9 @@ df_flowsandrates_cps_occ <-
     arrange(period_1, status_1, status_2, measure) %>%
     rename(period = period_1) %>%
     nest(c(period, y)) %>%
-    sa_ssm() %>%
-    smooth_ssm() %>%
+    mutate(data = data %>%
+               future_map(sa_ssm) %>%
+               future_map(smooth_ssm)) %>%
     unnest() %>%
     rename(period_1 = period,
            NSA = y,

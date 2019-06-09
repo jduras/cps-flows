@@ -30,7 +30,7 @@ df_flowsandrates_cps_agg <-
     arrange(period_1, lfs_1, lfs_2, measure) %>%
     rename(period = period_1) %>%
     nest(c(period, y)) %>%
-    sa_ssm() %>%
+    mutate(data = future_map(data, sa_ssm)) %>%
     unnest() %>%
     rename(period_1 = period,
            NSA = y,
